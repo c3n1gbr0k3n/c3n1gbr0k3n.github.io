@@ -14,6 +14,4 @@ pinned: false
 homepage: false
 ---
 
-![hello](images/1af992215335770bc01df475475fa9e1.png)
-
 Introducing Doks, a Hugo theme helping you build modern documentation websites that are secure, fast, and SEO-ready — by default.
