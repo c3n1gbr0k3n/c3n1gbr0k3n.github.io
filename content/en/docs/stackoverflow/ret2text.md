@@ -25,12 +25,12 @@ toc: true
 #include<stdio.h>
 #include<stdlib.h>
 
-void getshell() {	// getshell函数
+void getshell() {    // getshell函数
     system("/bin/sh");
 }
 
-void run(){	// 写run函数的目的是为了简化，因为现在32位main函数需要绕过ecx
-    char buf[0x10];	/* 局部变量 */
+void run(){    // 写run函数的目的是为了简化，因为现在32位main函数需要绕过ecx
+    char buf[0x10];    /* 局部变量 */
     printf("input: ");
     scanf("%s", buf);
 }
