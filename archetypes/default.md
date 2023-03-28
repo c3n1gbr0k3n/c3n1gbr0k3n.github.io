@@ -5,4 +5,6 @@ date: {{ .Date }}
 lastmod: {{ .Date }}
 draft: true
 images: []
+type: docs
+weight: 100
 ---
