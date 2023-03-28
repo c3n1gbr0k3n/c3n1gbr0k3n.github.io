@@ -1,27 +1,25 @@
 name: Deploy
-
 on:
-	push:
-		branches:
-			- main
+  push:
+      branches:
+        - main
 
 jobs:
-	build-deploy:
-		runs-on: ubuntu-20.04
+  build-deploy:
+    runs-on: ubuntu-20.04
 
-		steps:
-		- name: Checkout code
-		uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        users: actions/checkout@v2
 
-		- name: Install dependencies
-		run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-		- name: Build site
-      	run: npm run build
+      - name: Build site
+        run: npm run build
 
-      	
-    	- name: Deploy to GitHub Pages
-    	uses: peaceiris/actions-gh-pages@v3
-    	with:
-    		github_token: ${{ secrets.GITHUB_TOKEN }}
-    		publish_dir: ./docs/.vuepress/dist
+      - name: Deploy to GitHub Pages
+        users: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/.vuepress/dist
