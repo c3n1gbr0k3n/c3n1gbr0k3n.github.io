@@ -1,11 +1,11 @@
 [[docs]]
-  name = "栈溢出"
+  name = "Stack Overflow"
   weight = 10
   identifier = "stackoverflow"
   url = "/docs/stackoverflow/"
 
 [[docs]]
-  name = "堆溢出"
+  name = "Heap Exploit"
   weight = 60
   identifier = "heapexploit"
   url = "/docs/heapexploit/"
