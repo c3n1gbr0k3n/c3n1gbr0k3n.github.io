@@ -16,6 +16,7 @@ import rust from 'highlight.js/lib/languages/rust';
 import typescript from 'highlight.js/lib/languages/typescript';
 import go from 'highlight.js/lib/languages/go';
 import css from 'highlight.js/lib/languages/css';
+
 hljs.registerLanguage('css', css);
 hljs.registerLanguage('go', go);
 hljs.registerLanguage('typescript', typescript);
