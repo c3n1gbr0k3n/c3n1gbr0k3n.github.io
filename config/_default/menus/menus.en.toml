@@ -31,7 +31,7 @@
 [[main]]
   name = "WriteUp"
   weight = 15
-  url = "/writeup/buuoj/ciscn_2019_n_1"
+  url = "/writeup/buuoj/warmup_csaw_2016"
 [[main]]
   name = "Blog"
   url = "/blog/"
