@@ -1,14 +1,14 @@
-[[docs]]
-  name = "Stack Overflow"
-  weight = 10
-  identifier = "stackoverflow"
-  url = "/docs/stackoverflow/"
+#[[docs]]
+#  name = "Stack Overflow"
+#  weight = 10
+#  identifier = "stackoverflow"
+#  url = "/docs/stackoverflow/"
 
-[[docs]]
-  name = "Heap Exploit"
-  weight = 60
-  identifier = "heapexploit"
-  url = "/docs/heapexploit/"
+#[[docs]]
+#  name = "Heap Exploit"
+#  weight = 60
+#  identifier = "heapexploit"
+#  url = "/docs/heapexploit/"
 
 # [[docs]]
 #   name = "Lorem"
