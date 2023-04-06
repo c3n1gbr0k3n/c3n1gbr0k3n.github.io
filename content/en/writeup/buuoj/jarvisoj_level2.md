@@ -12,11 +12,11 @@ toc: true
 
 ## 0x01 分析
 
-![](image-1680786188922-1.png)  
+![5899a34e8af123188640d50e90e8ab90](images/5899a34e8af123188640d50e90e8ab90.png)  
 
 有system函数
 
-![](image 2-1680786188923-3.png)  
+![66e9da989afa3c853990969832f95810](images/66e9da989afa3c853990969832f95810.png)  
 
 也有 `/bin/sh` 字符串
 
@@ -36,6 +36,6 @@ o.interactive()
 
 ```
 
-![](image 3-1680786188923-2.png)  
+![b7c03d69d0b2a4b197b52dac6a5531f6](images/b7c03d69d0b2a4b197b52dac6a5531f6.png)  
 
 自行调试
