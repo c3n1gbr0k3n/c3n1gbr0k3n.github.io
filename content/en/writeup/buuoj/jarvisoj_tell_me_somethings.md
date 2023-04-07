@@ -12,11 +12,11 @@ toc: true
 
 ## 0x01 分析
 
-![](image-1680861634841-1.png)  
+![3a66c953b853bdf07979dad5e1ed8f6e](images/3a66c953b853bdf07979dad5e1ed8f6e.png)  
 
 简单的栈溢出
 
-![](image 2-1680861634842-2.png)  
+![a78f15079c4421b440a5d83be7554913](images/a78f15079c4421b440a5d83be7554913.png)  
 
 有一个打印flag的函数，所以直接ret2text即可
 
@@ -33,6 +33,6 @@ o.interactive()
 
 ```
 
-![](image 3-1680861634842-3.png)  
+![1de2b1d1f48cb48006f13e2c74c63d46](images/1de2b1d1f48cb48006f13e2c74c63d46.png)  
 
 自行调试
