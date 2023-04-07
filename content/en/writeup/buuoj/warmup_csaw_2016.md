@@ -20,7 +20,7 @@ toc: true
 
 直接简单的ret2text即可拿到flag
 
-## Exploit
+## 0x02 Exploit
 
 ```python
 from pwn import*
