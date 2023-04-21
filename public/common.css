@@ -1,0 +1,32 @@
+:root {
+  --page-background-color: #F9F9F9;
+  --line-color: rgba(0, 0, 0, 0.05);
+  --line-width: 1px;
+  --transition-duration: 0ms;
+  --text-default: #343A40;
+  --text-secondary: #9B9B9B;
+  --text-third: #0000001a;
+  --left-sidebar-width: 300px;
+  --right-sidebar-width: 300px;
+  --selected-background-color: rgba(0, 0, 0, 0.03);
+  --card-color: #fff;
+  --card-background-color: #000;
+  --base-font-size: 13px;
+  --color-transition-duration: 200ms;
+}
+
+.defaultTheme {
+  --title-color: #333;
+}
+
+.nightTheme {
+  --page-background-color: #1a1a1a;
+  --text-default: #DADADA;
+  --text-third: #EBEBEB;
+  --line-color: #0000000c;
+  --card-color: #282828;
+}
+
+* {
+  transition: background-color ease-in-out var(--color-transition-duration), color ease-in-out var(--color-transition-duration);
+}

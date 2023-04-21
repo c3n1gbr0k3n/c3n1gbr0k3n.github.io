@@ -1,0 +1,373 @@
+.btn-default {
+  color: var(--card-color);
+  background-color: var(--text-default);
+}
+
+@font-face {
+  font-family: Font Awesome\ 5 Pro Solid;
+  font-style: normal;
+  font-weight: 900;
+  font-display: auto;
+  src: url(fa-solid-900.ttf) format("truetype")
+}
+
+body > main {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: width 200ms ease-in-out;
+  width: calc(100vw - 600px);
+  height: 100%;
+}
+
+.note-title {
+  color: var(--title-color);
+  font-size: 1.8em;
+  line-height: 1.75;
+  font-weight: 700;
+  padding-top: 66px;
+}
+
+ruby > rt {
+  font-size: 100%;
+  transform: scale(0.5) translateY(5px);
+}
+
+.main-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  min-height: 50px;
+  border-bottom-width: var(--line-width);
+  border-bottom-style: solid;
+  border-bottom-color: var(--line-color);
+}
+
+#titleContainer {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  color: var(--text-default);
+  white-space: nowrap;
+}
+#titleContainer .left-sidebar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+#titleContainer .left-sidebar-btn::before {
+  content: '\f03c';
+  font-family: Font Awesome\ 5 Pro;
+  font-weight: 400;
+}
+
+/* 切换深浅色模式 */
+.main-title-bar #toggleNightThemeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+.main-title-bar #toggleNightThemeBtn::before {
+  font-family: Font Awesome\ 5 Pro Solid;
+  color: var(--text-default);
+}
+.defaultTheme #toggleNightThemeBtn::before {
+  content: '\f185';
+}
+.nightTheme #toggleNightThemeBtn::before {
+  content: '\f755';
+}
+/* 侧边栏开关 */
+.main-title-bar #toggleOpenRightSidebarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+.main-title-bar #toggleOpenRightSidebarBtn::before {
+  content: '\f0c9';
+  font-family: Font Awesome\ 5 Pro Solid;
+  color: var(--text-default);
+}
+
+.main-container {
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--right-sidebar-width);
+  min-width: var(--right-sidebar-width);
+  border-left-width: var(--line-width);
+  border-left-style: solid;
+  border-left-color: var(--line-color);
+  background-color: var(--page-background-color);
+  overflow: hidden;
+  transition: width 200ms ease-in-out,
+              min-width 200ms ease-in-out,
+              background-color ease-in-out var(--color-transition-duration),
+              color ease-in-out var(--color-transition-duration);
+}
+
+.right-sidebar header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  border-bottom-width: var(--line-width);
+  border-bottom-style: solid;
+  border-bottom-color: var(--line-color);
+}
+.right-sidebar header div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 50px;
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--text-default);
+  white-space: nowrap;
+  border-bottom-width: 3px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  opacity: 0.7;
+  transition: opacity 200ms ease-in-out;
+  cursor: pointer;
+}
+.right-sidebar header div.active {
+  opacity: 1;
+  border-bottom-color: var(--text-default);
+}
+.right-sidebar header div:before {
+  display: inline-block;
+  font-size: 1em;
+  font-family: Font Awesome\ 5 Pro;
+  font-weight: 400;
+  margin-right: 5px;
+}
+.right-sidebar header div:first-of-type:before {
+  content: '\f03c';
+}
+.right-sidebar header div:last-of-type:before {
+  content: '\f05a';
+}
+
+.right-sidebar main {
+  display: flex;
+  width: var(--right-sidebar-width);
+  height: 100%;
+  overflow: hidden;
+}
+.right-sidebar main .list-container {
+  position: relative;
+  min-width: var(--right-sidebar-width);
+  height: 100%;
+  overflow: auto;
+  transition: transform 200ms ease-in-out;
+}
+.right-sidebar main .list-container:first-of-type {
+  transform: translateX(-100%);
+}
+.right-sidebar main .list-container:first-of-type.active {
+  transform: translateX(0);
+}
+.right-sidebar main .list-container:last-of-type {
+  transform: translateX(0);
+}
+.right-sidebar main .list-container:last-of-type.active {
+  transform: translateX(-100%);
+}
+
+.right-sidebar main .list-container .placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: calc(80vh);
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+.right-sidebar main .list-container .placeholder.circle-info::before {
+  content: '\f05a';
+  font-family: Font Awesome\ 5 Pro Solid;
+  font-size: 50px;
+  color: var(--text-third);
+  margin-bottom: 10px;
+}
+.right-sidebar main .list-container .placeholder.message-slash::before {
+  content: '\f4a9';
+  font-family: Font Awesome\ 5 Pro Solid;
+  font-size: 50px;
+  color: var(--text-third);
+  margin-bottom: 10px;
+}
+
+#headerList {
+  position: relative;
+}
+#headerList .list-box {
+  height: 100%;
+  padding: 10px 10px 110px;
+}
+
+#headerList .header {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+#headerList .header > .icon::before {
+  display: inline-block;
+  content: '';
+  width: 8.75px;
+  margin-right: 10px;
+}
+#headerList .header > .icon.arrow::before {
+  content: '\f107';
+  font-family: Font Awesome\ 5 Pro;
+  color: var(--text-default);
+  font-weight: 400;
+  margin-right: 10px;
+  transform: rotate(-90deg);
+  transition: transform var(--transition-duration) ease-in-out;
+}
+#headerList .header.show > .icon.arrow::before {
+  transform: rotate(0);
+}
+
+#headerList .header-title {
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+#headerList .header.show ~ .list {
+  height: 100%;
+}
+#headerList .header ~ .list {
+  height: 0;
+  padding-left: 20px;
+  transition: height var(--transition-duration) ease-in-out;
+  overflow: hidden;
+}
+#headerList .toggle-fold-all {
+  position: fixed;
+  left: 50%;
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 50px;
+  color: var(--text-default);
+  background-color: var(--card-color);
+  border: var(--line-width) solid var(--line-color);
+  border-radius: 8px;
+  opacity: 0.3;
+  transform: translateX(-50%);
+  transition: opacity 200ms ease-in-out,
+              background-color ease-in-out var(--color-transition-duration),
+              color ease-in-out var(--color-transition-duration);
+  cursor: pointer;
+}
+#headerList .toggle-fold-all:hover {
+  opacity: 1;
+}
+
+#remarkList {
+  padding: 0 10px;
+}
+#remarkList .remark-item {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 20px;
+  cursor: pointer;
+}
+#remarkList .remark-item .number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  font-size: 1.43em;
+  line-height: 40px;
+  color: var(--card-color);
+  background-color: var(--text-default);
+  opacity: 0.1;
+  border-radius: 50%;
+  transform: scale(0.5);
+}
+#remarkList .remark-item .remark-container {
+  display: flex;
+  flex-direction: column;
+}
+#remarkList .remark-item .title {
+  word-break: break-all;
+  margin-bottom: 5px;
+  line-height: 24px;
+  font-size: 1em;
+  color: var(--text-default);
+}
+#remarkList .remark-item .text {
+  word-break: break-all;
+  font-size: 0.85em;
+  line-height: 24px;
+  padding: 5px;
+  color: var(--text-secondary);
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: var(--line-color);
+  white-space: pre-wrap;
+}
+
+.isMobile .note.m {
+  font-size: 17px;
+}
+.isMobile .note.s {
+  font-size: 15px;
+}
+.isMobile .note.l {
+  font-size: 19px;
+}
+.isMobile .note.xl {
+  font-size: 21px;
+}
+
+[remark-text]:hover {
+  position: relative;
+}
+
+[remark-text]:hover::before {
+   content: attr(remark-text);
+   position: absolute;
+   left: 50%;
+   top: 0;
+   font-size: 11px;
+   /* white-space: nowrap; */
+   color: var(--card-color);
+   background-color: var(--card-background-color);
+   padding: 2px 10px;
+   border-radius: 4px;
+   transform: translate(-50%, -100%);
+   z-index: 1;
+}
