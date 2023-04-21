@@ -6,7 +6,7 @@
     </div>
     <div class="col-lg-9 col-xl-8 text-center">
       <p class="lead">二进制随想录</p>
-      <p class="lead">立志学好二进制</p>
+<!--      <p class="lead">立志学好二进制</p>-->
       <a class="btn btn-primary btn-lg px-4 mb-2" href="/docs/{{ if .Site.Params.options.docsVersioning }}{{ .Site.Params.docsVersion }}/{{ end }}exploit/stackoverflow/ret2text/" role="button">{{ i18n "get-started" }}</a>
       <!-- <p class="meta">Open-source MIT Licensed. <a href="https://github.com/h-enk/doks">GitHub v{{ $data := getJSON "/package.json" }}{{ $data.version }}</a></p> -->
     </div>
@@ -18,7 +18,24 @@
   {{ if eq $.Site.Language.LanguageName "English" }}
   <section class="section section-sm">
     <div class="container">
-      <div class="row justify-content-center text-center">
+	    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-lg-5">
+  {{ range . -}}
+  <div class="col">
+    <div class="card">
+      <!--{{- .Scratch.Set "fillImageCard" "1270x620 Center" -}}
+      {{ partial "content/card-image.html" . }}-->
+      <div class="card-body">
+        <article>
+          <h2 class="h3"><a class="stretched-link text-body" href="{{ .RelPermalink }}">{{ .Params.title }}</a></h2>
+          <p>{{ .Params.excerpt | safeHTML }}</p>
+          {{ partial "main/blog-meta.html" . -}}
+        </article>
+      </div>
+    </div>
+  </div>
+  {{ end -}}
+</div>
+      <!--<div class="row justify-content-center text-center">
         <div class="col-lg-5">
           <h2 class="h4">逆向破解</h2>
           <p>反编译、反调试、加壳脱壳</p>
@@ -45,7 +62,7 @@
           <h2 class="h4">夺旗比赛</h2>
           <p>pwn、reverse、android、iot</p>
         </div>
-      </div>
+      </div>-->
     </div>
   </section>
   {{ end }}
