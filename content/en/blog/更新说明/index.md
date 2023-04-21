@@ -16,4 +16,4 @@ homepage: yes
 
 ## 2023.4.16 ~ 2023.4.22
 
-[格式化字符串漏洞攻击栈](../../docs/exploit/formatstring/格式化字符串漏洞/)
+[全局格式化字符串任意写](../../docs/exploit/formatstring/全局格式化字符串任意写/)
