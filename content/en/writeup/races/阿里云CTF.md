@@ -40,7 +40,7 @@ main()
 ./node --print-bytecode test.js > test.txt
 ```
 
-直接搜字符串 `ctf{test}`。 
+直接搜字符串 `ctf{test}`。
 
 ![f4054b2b09fca5e777b7fcb465588a6e](images/f4054b2b09fca5e777b7fcb465588a6e.png)  
 
