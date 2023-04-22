@@ -40,11 +40,11 @@ main()
 ./node --print-bytecode test.js > test.txt
 ```
 
-直接搜字符串 `ctf{test}` 
+直接搜字符串 `ctf{test}`。 
 
 ![f4054b2b09fca5e777b7fcb465588a6e](images/f4054b2b09fca5e777b7fcb465588a6e.png)  
 
-然后就直接找到了main函数，如果直接去搜 `SharedFunctionInfo main` 
+然后就直接找到了main函数，如果直接去搜 `SharedFunctionInfo main` 。
 
 ![65e01228c9966c22df36c58be65e8f46](images/65e01228c9966c22df36c58be65e8f46.png)  
 
@@ -317,7 +317,7 @@ Constant pool (size = 6)
 //a1[i] = a0[i]
   442 S> 0x3711a3be127c @  102 : 21 00 02          LdaGlobal [0], [2]
   441 E> 0x3711a3be127f @  105 : 2f 04 16          LdaKeyedProperty a1, [22]
-  436 E> 0x3711a3be1282 @  108 : 3f f9 15          BitwiseXor r1, [21]			
+  436 E> 0x3711a3be1282 @  108 : 3f f9 15          BitwiseXor r1, [21]
 // a1[i] ^ r1
   446 E> 0x3711a3be1285 @  111 : 00 4c ff 00 14 00 BitwiseAndSmi.Wide [255], [20]
          0x3711a3be128b @  117 : c2                Star1  
