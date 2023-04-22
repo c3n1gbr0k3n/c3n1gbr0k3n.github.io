@@ -1,0 +1,351 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="ie=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><link rel=preload as=font href=https://c3n1gbr0k3n.github.io/fonts/vendor/jost/jost-v4-latin-regular.woff2 type=font/woff2 crossorigin><link rel=preload as=font href=https://c3n1gbr0k3n.github.io/fonts/vendor/jost/jost-v4-latin-500.woff2 type=font/woff2 crossorigin><link rel=preload as=font href=https://c3n1gbr0k3n.github.io/fonts/vendor/jost/jost-v4-latin-700.woff2 type=font/woff2 crossorigin><script>(()=>{var t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,e=localStorage.getItem("theme");t&&e===null&&(localStorage.setItem("theme","dark"),document.documentElement.setAttribute("data-dark-mode","")),t&&e==="dark"&&document.documentElement.setAttribute("data-dark-mode",""),e==="dark"&&document.documentElement.setAttribute("data-dark-mode","")})()</script><link rel=stylesheet href=https://c3n1gbr0k3n.github.io/main.e883366e4b577741d201cac65bcdebd71c66d657832b99dd31c1ee69f72fd2925eb4a4bde47bd2610347501b510ea21b2b055f091f79150ba409c0ae3ae0a9d2.css integrity="sha512-6IM2bktXd0HSAcrGW83r1xxm1leDK5ndMcHuafcv0pJetKS95HvSYQNHUBtRDqIbKwVfCR95FQukCcCuOuCp0g==" crossorigin=anonymous><noscript><style>img.lazyload{display:none}</style></noscript><meta name=robots content="index, follow"><meta name=googlebot content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"><meta name=bingbot content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"><title>阿里云CTF - BinaryMusings</title><meta name=description content="Reverse_字节码跳动 # 0x01 分析 # 这道题是一个js字节码分析的题目，根据run.sh可以知道题目删除了js源码，保留了字节码文件 flagchecker_bytecode.txt ，以及一个jsc二进制文件。既然有字节码文件，那么我们直接来分析该文件。在这之前我也没有接触过js字节码逆向，所以我先写一个测试文件并输出字节码来对比分析，再结合网上的部分文章，大概可以看懂字节码。
+测试js文件为
+function aaa(string, j) { for(let i = 0; i &amp;lt; string.length; i++) { string[i] |= j; } } function main() { let string = &amp;quot;ctf{test}&amp;quot;; aaa(string, 20); console.log(string); } main() 然后执行命令
+./node --print-bytecode test.js &amp;gt; test.txt 直接搜字符串 ctf{test}。
+然后就直接找到了main函数，如果直接去搜 SharedFunctionInfo main 。
+发现有一个对类似于对函数进行注册的地方，里面还能看到aaa函数，接下来我们对比源码来分析字节码
+// main函数 Bytecode Age: 0 147 S&amp;gt; 0x3f079242086e @ 0 : 13 00 LdaConstant [0] // 将常量池中的0读取到累加器中，常量池就是最下面那个FixedArray，这里就是加载ctf{test} 0x3f0792420870 @ 2 : c3 Star0 // 将累加器中的值给r0 161 S&amp;gt; 0x3f0792420871 @ 3 : 17 02 LdaImmutableCurrentContextSlot [2] // 猜测是加载aaa函数到累加器 0x3f0792420873 @ 5 : c2 Star1 // 将累加器值给r1 0x3f0792420874 @ 6 : 0d 14 LdaSmi [20] // 立即值20加载到累加器 0x3f0792420876 @ 8 : c0 Star3 // 20给r3 161 E&amp;gt; 0x3f0792420877 @ 9 : 62 f9 fa f7 00 CallUndefinedReceiver2 r1, r0, r3, [0] // 调用函数 r1(r0, r3) 179 S&amp;gt; 0x3f079242087c @ 14 : 21 01 02 LdaGlobal [1], [2] // 加载常量池的1 console 0x3f079242087f @ 17 : c1 Star2 // 将其给r2 187 E&amp;gt; 0x3f0792420880 @ 18 : 2d f8 02 04 LdaNamedProperty r2, [2], [4] // 常量池的2为log，所以为加载console."><link rel=canonical href=https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/><meta property="og:locale" content="en_US"><meta property="og:type" content="article"><meta property="og:title" content="阿里云CTF"><meta property="og:description" content="Reverse_字节码跳动 # 0x01 分析 # 这道题是一个js字节码分析的题目，根据run.sh可以知道题目删除了js源码，保留了字节码文件 flagchecker_bytecode.txt ，以及一个jsc二进制文件。既然有字节码文件，那么我们直接来分析该文件。在这之前我也没有接触过js字节码逆向，所以我先写一个测试文件并输出字节码来对比分析，再结合网上的部分文章，大概可以看懂字节码。
+测试js文件为
+function aaa(string, j) { for(let i = 0; i < string.length; i++) { string[i] |= j; } } function main() { let string = &#34;ctf{test}&#34;; aaa(string, 20); console.log(string); } main() 然后执行命令
+./node --print-bytecode test.js > test.txt 直接搜字符串 ctf{test}。
+然后就直接找到了main函数，如果直接去搜 SharedFunctionInfo main 。
+发现有一个对类似于对函数进行注册的地方，里面还能看到aaa函数，接下来我们对比源码来分析字节码
+// main函数 Bytecode Age: 0 147 S> 0x3f079242086e @ 0 : 13 00 LdaConstant [0] // 将常量池中的0读取到累加器中，常量池就是最下面那个FixedArray，这里就是加载ctf{test} 0x3f0792420870 @ 2 : c3 Star0 // 将累加器中的值给r0 161 S> 0x3f0792420871 @ 3 : 17 02 LdaImmutableCurrentContextSlot [2] // 猜测是加载aaa函数到累加器 0x3f0792420873 @ 5 : c2 Star1 // 将累加器值给r1 0x3f0792420874 @ 6 : 0d 14 LdaSmi [20] // 立即值20加载到累加器 0x3f0792420876 @ 8 : c0 Star3 // 20给r3 161 E> 0x3f0792420877 @ 9 : 62 f9 fa f7 00 CallUndefinedReceiver2 r1, r0, r3, [0] // 调用函数 r1(r0, r3) 179 S> 0x3f079242087c @ 14 : 21 01 02 LdaGlobal [1], [2] // 加载常量池的1 console 0x3f079242087f @ 17 : c1 Star2 // 将其给r2 187 E> 0x3f0792420880 @ 18 : 2d f8 02 04 LdaNamedProperty r2, [2], [4] // 常量池的2为log，所以为加载console."><meta property="og:url" content="https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/"><meta property="og:site_name" content="BinaryMusings"><meta property="article:published_time" content="2023-04-23T02:21:47+08:00"><meta property="article:modified_time" content="2023-04-23T02:21:47+08:00"><meta property="og:image" content="https://c3n1gbr0k3n.github.io/doks.png"><meta property="og:image:alt" content="BinaryMusings"><meta name=twitter:card content="summary_large_image"><meta name=twitter:site content="@getdoks"><meta name=twitter:creator content="@henkverlinde"><meta name=twitter:title content="阿里云CTF"><meta name=twitter:description content><meta name=twitter:image content="https://c3n1gbr0k3n.github.io/doks.png"><meta name=twitter:image:alt content="阿里云CTF"><script type=application/ld+json>{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://c3n1gbr0k3n.github.io/#/schema/organization/1","name":"Doks","url":"https://c3n1gbr0k3n.github.io/","sameAs":["https://twitter.com/getdoks","https://github.com/h-enk/doks"],"logo":{"@type":"ImageObject","@id":"https://c3n1gbr0k3n.github.io/#/schema/image/1","url":"https://c3n1gbr0k3n.github.io/logo-doks.png","width":512,"height":512,"caption":"Doks"},"image":{"@id":"https://c3n1gbr0k3n.github.io/#/schema/image/1"}},{"@type":"WebSite","@id":"https://c3n1gbr0k3n.github.io/#/schema/website/1","url":"https://c3n1gbr0k3n.github.io/","name":"BinaryMusings","description":"二进制随想录，分享与开放","publisher":{"@id":"https://c3n1gbr0k3n.github.io/#/schema/organization/1"}},{"@type":"WebPage","@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/","url":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/","name":"阿里云CTF","description":"","isPartOf":{"@id":"https://c3n1gbr0k3n.github.io/#/schema/website/1"},"about":{"@id":"https://c3n1gbr0k3n.github.io/#/schema/organization/1"},"datePublished":"2023-04-23T02:21:47CET","dateModified":"2023-04-23T02:21:47CET","breadcrumb":{"@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/#/schema/breadcrumb/1"},"primaryImageOfPage":{"@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/#/schema/image/2"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/"]}]},{"@type":"BreadcrumbList","@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/#/schema/breadcrumb/1","name":"Breadcrumbs","itemListElement":[{"@type":"ListItem","position":1,"item":{"@type":"WebPage","@id":"https://c3n1gbr0k3n.github.io/","url":"https://c3n1gbr0k3n.github.io/","name":"Home"}},{"@type":"ListItem","position":2,"item":{"@type":"WebPage","@id":"https://c3n1gbr0k3n.github.io/writeup/","url":"https://c3n1gbr0k3n.github.io/writeup/","name":"Writeup"}},{"@type":"ListItem","position":3,"item":{"@type":"WebPage","@id":"https://c3n1gbr0k3n.github.io/writeup/races/","url":"https://c3n1gbr0k3n.github.io/writeup/races/","name":"Races"}},{"@type":"ListItem","position":4,"item":{"@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/"}}]},{"@context":"https://schema.org","@graph":[{"@type":"ImageObject","@id":"https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/#/schema/image/2","url":"https://c3n1gbr0k3n.github.io/doks.png","contentUrl":"https://c3n1gbr0k3n.github.io/doks.png","caption":"阿里云CTF"}]}]}</script><meta name=theme-color content="#fff"><link rel=icon href=https://c3n1gbr0k3n.github.io/favicon.ico sizes=any><link rel=icon type=image/svg+xml href=https://c3n1gbr0k3n.github.io/favicon.svg><link rel=apple-touch-icon sizes=180x180 href=https://c3n1gbr0k3n.github.io/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=https://c3n1gbr0k3n.github.io/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=https://c3n1gbr0k3n.github.io/favicon-16x16.png><link rel=manifest crossorigin=use-credentials href=https://c3n1gbr0k3n.github.io/site.webmanifest></head><body class="docs single"><div class=sticky-top><div class=header-bar></div><header class="navbar navbar-expand-lg navbar-light doks-navbar"><nav class="container-xxl flex-wrap flex-lg-nowrap" aria-label="Main navigation"><a class="navbar-brand order-0" href=https://c3n1gbr0k3n.github.io/ aria-label=BinaryMusings>BinaryMusings</a>
+<button class="btn btn-link order-0 ms-auto d-lg-none" type=button data-bs-toggle=offcanvas data-bs-target=#offcanvasExample aria-controls=offcanvasExample><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-horizontal"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button><div class="offcanvas offcanvas-start d-lg-none" tabindex=-1 id=offcanvasExample aria-labelledby=offcanvasExampleLabel><div class=header-bar></div><div class=offcanvas-header><h5 class=offcanvas-title id=offcanvasExampleLabel>Browse writeup</h5><button type=button class=btn-close data-bs-dismiss=offcanvas aria-label=Close></button></div><div class=offcanvas-body><aside class="doks-sidebar mt-n3"><nav id=doks-docs-nav aria-label="Tertiary navigation"><ul class="list-unstyled collapsible-sidebar"><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-3234d347860f68c0e2fe60c761dd9f6d aria-expanded=false>
+Buuoj</button><div class=collapse id=section-3234d347860f68c0e2fe60c761dd9f6d><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_tell_me_somethings/>Jarvisoj_tell_me_somethings</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_es_2/>ciscn_2019_es_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_fm/>jarvisoj_fm</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack2/>bjdctf_2020_babystack2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babyrop/>bjdctf_2020_babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9_%E7%AC%AC%E4%BA%94%E8%B5%9B%E5%8C%BA_2018_rop/>铁人三项(第五赛区)_2018_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_ne_5/>ciscn_2019_ne_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/others_shellcode/>others_shellcode</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_5/>ciscn_2019_n_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/not_the_same_3dsctf_2016/>not_the_same_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_en_2/>ciscn_2019_en_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/harekazectf2019_baby_rop/>[HarekazeCTF2019]baby_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2_x64/>jarvisoj_level2_x64</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ogeek2019_babyrop/>[OGeek2019]babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/get_started_3dsctf_2016/>get_started_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack/>bjdctf_2020_babystack</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2/>jarvisoj_level2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_8/>ciscn_2019_n_8</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_c_1/>ciscn_2019_c_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4_2019_%E5%86%B3%E8%B5%9B_pwn5/>[第五空间 2019 决赛] PWN5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level0/>jarvisoj_level0</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_1/>ciscn_2019_n_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/warmup_csaw_2016/>warmup_csaw_2016</a></li></ul></div></li><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-49a9698ad07aef90b5861713d3765ef7 aria-expanded=true>
+Races</button><div class="collapse show" id=section-49a9698ad07aef90b5861713d3765ef7><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded active" href=https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/>阿里云CTF</a></li></ul></div></li></ul></nav></aside></div></div><button class="btn btn-menu order-2 d-block d-lg-none" type=button data-bs-toggle=offcanvas data-bs-target=#offcanvasDoks aria-controls=offcanvasDoks aria-label="Open main menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button><div class="offcanvas offcanvas-end border-0 py-lg-1" tabindex=-1 id=offcanvasDoks data-bs-backdrop=true aria-labelledby=offcanvasDoksLabel><div class="header-bar d-lg-none"></div><div class="offcanvas-header d-lg-none"><h2 class="h5 offcanvas-title ps-2" id=offcanvasDoksLabel><a class=text-dark href=https://c3n1gbr0k3n.github.io/>BinaryMusings</a></h2><button type=button class="btn-close text-reset me-2" data-bs-dismiss=offcanvas aria-label="Close main menu"></button></div><div class="offcanvas-body p-4 p-lg-0"><ul class="nav flex-column flex-lg-row align-items-lg-center mt-2 mt-lg-0 ms-lg-2 me-lg-auto"><li class=nav-item><a class="nav-link ps-0 py-1" href=https://c3n1gbr0k3n.github.io/docs/exploit/stackoverflow/ret2text>Docs</a></li><li class=nav-item><a class="nav-link ps-0 py-1" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/warmup_csaw_2016>WriteUp</a></li><li class=nav-item><a class="nav-link ps-0 py-1" href=https://c3n1gbr0k3n.github.io/blog/>Blog</a></li></ul><hr class="text-black-50 my-4 d-lg-none"><form class="doks-search position-relative flex-grow-1 ms-lg-auto me-lg-2"><input id=search class="form-control is-search" type=search placeholder="Search docs..." aria-label="Search docs..." autocomplete=off><div id=suggestions class="shadow bg-white rounded d-none"></div></form><hr class="text-black-50 my-4 d-lg-none"><ul class="nav flex-column flex-lg-row"><li class=nav-item><a class="nav-link social-link" href=https://github.com/c3n1gbr0k3n/BinaryMusings><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg><small class="ms-2 d-lg-none">GitHub</small></a></li></ul><hr class="text-black-50 my-4 d-lg-none"><button id=mode class="btn btn-link" type=button aria-label="Toggle user interface mode">
+<span class=toggle-dark><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></span><span class=toggle-light><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span></button></div></div></nav></header></div><div class=container-xxl><aside class=doks-sidebar><nav id=doks-docs-nav class="collapse d-lg-none" aria-label="Tertiary navigation"><ul class="list-unstyled collapsible-sidebar"><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-3234d347860f68c0e2fe60c761dd9f6d aria-expanded=false>
+Buuoj</button><div class=collapse id=section-3234d347860f68c0e2fe60c761dd9f6d><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_tell_me_somethings/>Jarvisoj_tell_me_somethings</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_es_2/>ciscn_2019_es_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_fm/>jarvisoj_fm</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack2/>bjdctf_2020_babystack2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babyrop/>bjdctf_2020_babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9_%E7%AC%AC%E4%BA%94%E8%B5%9B%E5%8C%BA_2018_rop/>铁人三项(第五赛区)_2018_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_ne_5/>ciscn_2019_ne_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/others_shellcode/>others_shellcode</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_5/>ciscn_2019_n_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/not_the_same_3dsctf_2016/>not_the_same_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_en_2/>ciscn_2019_en_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/harekazectf2019_baby_rop/>[HarekazeCTF2019]baby_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2_x64/>jarvisoj_level2_x64</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ogeek2019_babyrop/>[OGeek2019]babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/get_started_3dsctf_2016/>get_started_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack/>bjdctf_2020_babystack</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2/>jarvisoj_level2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_8/>ciscn_2019_n_8</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_c_1/>ciscn_2019_c_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4_2019_%E5%86%B3%E8%B5%9B_pwn5/>[第五空间 2019 决赛] PWN5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level0/>jarvisoj_level0</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_1/>ciscn_2019_n_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/warmup_csaw_2016/>warmup_csaw_2016</a></li></ul></div></li><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-49a9698ad07aef90b5861713d3765ef7 aria-expanded=true>
+Races</button><div class="collapse show" id=section-49a9698ad07aef90b5861713d3765ef7><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded active" href=https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/>阿里云CTF</a></li></ul></div></li></ul></nav></aside></div><div class="wrap container-xxl" role=document><div class=content><div class="row flex-xl-nowrap"><div class="col-lg-5 col-xl-4 docs-sidebar d-none d-lg-block"><nav class=docs-links aria-label="Main navigation"><ul class="list-unstyled collapsible-sidebar"><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-3234d347860f68c0e2fe60c761dd9f6d aria-expanded=false>
+Buuoj</button><div class=collapse id=section-3234d347860f68c0e2fe60c761dd9f6d><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_tell_me_somethings/>Jarvisoj_tell_me_somethings</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_es_2/>ciscn_2019_es_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_fm/>jarvisoj_fm</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack2/>bjdctf_2020_babystack2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babyrop/>bjdctf_2020_babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E9%93%81%E4%BA%BA%E4%B8%89%E9%A1%B9_%E7%AC%AC%E4%BA%94%E8%B5%9B%E5%8C%BA_2018_rop/>铁人三项(第五赛区)_2018_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_ne_5/>ciscn_2019_ne_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/others_shellcode/>others_shellcode</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_5/>ciscn_2019_n_5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/not_the_same_3dsctf_2016/>not_the_same_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_en_2/>ciscn_2019_en_2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/harekazectf2019_baby_rop/>[HarekazeCTF2019]baby_rop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2_x64/>jarvisoj_level2_x64</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ogeek2019_babyrop/>[OGeek2019]babyrop</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/get_started_3dsctf_2016/>get_started_3dsctf_2016</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/bjdctf_2020_babystack/>bjdctf_2020_babystack</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level2/>jarvisoj_level2</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_8/>ciscn_2019_n_8</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_c_1/>ciscn_2019_c_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4_2019_%E5%86%B3%E8%B5%9B_pwn5/>[第五空间 2019 决赛] PWN5</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_level0/>jarvisoj_level0</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/ciscn_2019_n_1/>ciscn_2019_n_1</a></li><li><a class="docs-link rounded" href=https://c3n1gbr0k3n.github.io/writeup/buuoj/warmup_csaw_2016/>warmup_csaw_2016</a></li></ul></div></li><li class=mb-1><button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle=collapse data-bs-target=#section-49a9698ad07aef90b5861713d3765ef7 aria-expanded=true>
+Races</button><div class="collapse show" id=section-49a9698ad07aef90b5861713d3765ef7><ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"><li><a class="docs-link rounded active" href=https://c3n1gbr0k3n.github.io/writeup/races/%E9%98%BF%E9%87%8C%E4%BA%91ctf/>阿里云CTF</a></li></ul></div></li></ul></nav></div><nav class="docs-toc d-none d-xl-block col-xl-3" aria-label="Secondary navigation"><div class=d-xl-none><button class="btn btn-outline-primary btn-sm doks-toc-toggle collapsed" type=button data-bs-toggle=collapse data-bs-target=#onThisPage aria-controls=doks-docs-nav aria-expanded=false aria-label="Toggle On this page navigation">
+<span>On this page</span>
+<span><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="doks doks-expand" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Expand</title><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="doks doks-collapse" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Collapse</title><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg></span></button><div class=collapse id=onThisPage><div class="card card-body mt-3 py-1"><div class=page-links><nav id=TableOfContents><ul><li><a href=#reverse_字节码跳动>Reverse_字节码跳动</a><ul><li><a href=#0x01-分析>0x01 分析</a></li><li><a href=#0x02-参考文章>0x02 参考文章</a></li></ul></li></ul></nav></div></div></div></div><div class="page-links d-none d-xl-block"><h3>On this page</h3><nav id=TableOfContents><ul><li><a href=#reverse_字节码跳动>Reverse_字节码跳动</a><ul><li><a href=#0x01-分析>0x01 分析</a></li><li><a href=#0x02-参考文章>0x02 参考文章</a></li></ul></li></ul></nav></div></nav><main class="docs-content col-lg-11 col-xl-9"><h1>阿里云CTF</h1><p class=lead></p><nav class=d-xl-none aria-label="Quaternary navigation"><div class=d-xl-none><button class="btn btn-outline-primary btn-sm doks-toc-toggle collapsed" type=button data-bs-toggle=collapse data-bs-target=#onThisPage aria-controls=doks-docs-nav aria-expanded=false aria-label="Toggle On this page navigation">
+<span>On this page</span>
+<span><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="doks doks-expand" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Expand</title><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="doks doks-collapse" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Collapse</title><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg></span></button><div class=collapse id=onThisPage><div class="card card-body mt-3 py-1"><div class=page-links><nav id=TableOfContents><ul><li><a href=#reverse_字节码跳动>Reverse_字节码跳动</a><ul><li><a href=#0x01-分析>0x01 分析</a></li><li><a href=#0x02-参考文章>0x02 参考文章</a></li></ul></li></ul></nav></div></div></div></div><div class="page-links d-none d-xl-block"><h3>On this page</h3><nav id=TableOfContents><ul><li><a href=#reverse_字节码跳动>Reverse_字节码跳动</a><ul><li><a href=#0x01-分析>0x01 分析</a></li><li><a href=#0x02-参考文章>0x02 参考文章</a></li></ul></li></ul></nav></div></nav><h2 id=reverse_字节码跳动>Reverse_字节码跳动 <a href=#reverse_%e5%ad%97%e8%8a%82%e7%a0%81%e8%b7%b3%e5%8a%a8 class=anchor aria-hidden=true>#</a></h2><h3 id=0x01-分析>0x01 分析 <a href=#0x01-%e5%88%86%e6%9e%90 class=anchor aria-hidden=true>#</a></h3><p>这道题是一个js字节码分析的题目，根据run.sh可以知道题目删除了js源码，保留了字节码文件 <code>flagchecker_bytecode.txt</code> ，以及一个jsc二进制文件。既然有字节码文件，那么我们直接来分析该文件。在这之前我也没有接触过js字节码逆向，所以我先写一个测试文件并输出字节码来对比分析，再结合网上的部分文章，大概可以看懂字节码。</p><p>测试js文件为</p><pre><code class=language-javascript>function aaa(string, j) {
+        for(let i = 0; i &lt; string.length; i++) {
+                string[i] |= j;
+        }
+}
+
+
+function main() {
+        let string = &quot;ctf{test}&quot;;
+        aaa(string, 20);
+        console.log(string);
+}
+main()
+</code></pre><p>然后执行命令</p><pre><code class=language-bash>./node --print-bytecode test.js &gt; test.txt
+</code></pre><p>直接搜字符串 <code>ctf{test}</code>。</p><p><img class="img-fluid lazyload blur-up" src=https://c3n1gbr0k3n.github.io/images/f4054b2b09fca5e777b7fcb465588a6e.png alt=f4054b2b09fca5e777b7fcb465588a6e></p><p>然后就直接找到了main函数，如果直接去搜 <code>SharedFunctionInfo main</code> 。</p><p><img class="img-fluid lazyload blur-up" src=https://c3n1gbr0k3n.github.io/images/65e01228c9966c22df36c58be65e8f46.png alt=65e01228c9966c22df36c58be65e8f46></p><p>发现有一个对类似于对函数进行注册的地方，里面还能看到aaa函数，接下来我们对比源码来分析字节码</p><pre><code class=language-javascript>// main函数
+Bytecode Age: 0
+  147 S&gt; 0x3f079242086e @    0 : 13 00             LdaConstant [0]
+// 将常量池中的0读取到累加器中，常量池就是最下面那个FixedArray，这里就是加载ctf{test}
+         0x3f0792420870 @    2 : c3                Star0 
+// 将累加器中的值给r0
+  161 S&gt; 0x3f0792420871 @    3 : 17 02             LdaImmutableCurrentContextSlot [2]
+// 猜测是加载aaa函数到累加器
+         0x3f0792420873 @    5 : c2                Star1 
+// 将累加器值给r1
+         0x3f0792420874 @    6 : 0d 14             LdaSmi [20]
+// 立即值20加载到累加器
+         0x3f0792420876 @    8 : c0                Star3 
+// 20给r3
+  161 E&gt; 0x3f0792420877 @    9 : 62 f9 fa f7 00    CallUndefinedReceiver2 r1, r0, r3, [0]
+// 调用函数 r1(r0, r3)
+  179 S&gt; 0x3f079242087c @   14 : 21 01 02          LdaGlobal [1], [2]
+// 加载常量池的1 console
+         0x3f079242087f @   17 : c1                Star2 
+// 将其给r2
+  187 E&gt; 0x3f0792420880 @   18 : 2d f8 02 04       LdaNamedProperty r2, [2], [4]
+// 常量池的2为log，所以为加载console.log到累加器
+         0x3f0792420884 @   22 : c2                Star1 
+// 给r1
+  187 E&gt; 0x3f0792420885 @   23 : 5d f9 f8 fa 06    CallProperty1 r1, r2, r0, [6]
+// 调用方法 r1(r2, r0)，这里r2相当于this指针，r0是开头的字符串
+         0x3f079242088a @   28 : 0e                LdaUndefined 
+  200 S&gt; 0x3f079242088b @   29 : a8                Return 
+Constant pool (size = 3)
+0x3f0792420811: [FixedArray] in OldSpace
+ - map: 0x26392a3c12c1 &lt;Map&gt;
+ - length: 3
+           0: 0x3f07924207a1 &lt;String[9]: #ctf{test}&gt;
+           1: 0x1127121a1619 &lt;String[7]: #console&gt;
+           2: 0x319f33ce8e69 &lt;String[3]: #log&gt;
+</code></pre><p>接着是aaa函数</p><pre><code class=language-javascript>// aaa函数
+   40 S&gt; 0x3f079242096e @    0 : 0c                LdaZero 
+// 加载0到累加器
+         0x3f079242096f @    1 : c3                Star0 
+// 给r0
+   54 S&gt; 0x3f0792420970 @    2 : 2d 03 00 00       LdaNamedProperty a0, [0], [0]
+// 读取第一个参数a0的length属性到累加器
+   45 E&gt; 0x3f0792420974 @    6 : 6c fa 02          TestLessThan r0, [2]
+// 判断r0是否小于累加器
+         0x3f0792420977 @    9 : 98 19             JumpIfFalse [25] (0x3f0792420990 @ 34)
+// false则跳转25个距离
+   85 S&gt; 0x3f0792420979 @   11 : 0b fa             Ldar r0
+// 累加器设置为r0
+   92 E&gt; 0x3f079242097b @   13 : 2f 03 03          LdaKeyedProperty a0, [3]
+// 相当于a0[r0]
+         0x3f079242097e @   16 : c0                Star3 
+// 给r3
+         0x3f079242097f @   17 : 0b 04             Ldar a1
+// 加载第二个参数a1给累加器
+   98 E&gt; 0x3f0792420981 @   19 : 3e f7 05          BitwiseOr r3, [5]
+// 累加器和r3进行异或运算
+   95 E&gt; 0x3f0792420984 @   22 : 34 03 fa 06       StaKeyedProperty a0, r0, [6]
+// 将累加器的值设置给 a0[r0]
+   63 S&gt; 0x3f0792420988 @   26 : 0b fa             Ldar r0
+// 载入r0到累加器
+         0x3f079242098a @   28 : 50 08             Inc [8]
+// 到下一个单元
+         0x3f079242098c @   30 : c3                Star0 
+// 给r0
+   28 E&gt; 0x3f079242098d @   31 : 88 1d 00          JumpLoop [29], [0] (0x3f0792420970 @ 2)
+// 跳转循环
+         0x3f0792420990 @   34 : 0e                LdaUndefined 
+  111 S&gt; 0x3f0792420991 @   35 : a8                Return 
+Constant pool (size = 1)
+0x3f0792420921: [FixedArray] in OldSpace
+ - map: 0x26392a3c12c1 &lt;Map&gt;
+ - length: 1
+           0: 0x26392a3c4d41 &lt;String[6]: #length&gt;
+</code></pre><p>有了这个基础后我们再来看题目的字节码</p><p><img class="img-fluid lazyload blur-up" src=https://c3n1gbr0k3n.github.io/images/ad0b40af2977bfb23912b17aeec012a4.png alt=ad0b40af2977bfb23912b17aeec012a4></p><p>可以看到应该用到了main、aaa和ccc函数，这三个函数顺序应该就是main->aaa->ccc</p><pre><code class=language-javascript> // main函数
+ 1207 S&gt; 0x3711a3be0a56 @    0 : 21 00 00          LdaGlobal [0], [0]
+// 加载常量池的process
+         0x3711a3be0a59 @    3 : c2                Star1 
+// 给r1
+ 1215 E&gt; 0x3711a3be0a5a @    4 : 2d f9 01 02       LdaNamedProperty r1, [1], [2]
+// 获取r1.[1]即process.argv，也就是flag
+         0x3711a3be0a5e @    8 : c2                Star1 
+// 给r1
+         0x3711a3be0a5f @    9 : 0d 02             LdaSmi [2]
+// 累加器加载为2
+ 1219 E&gt; 0x3711a3be0a61 @   11 : 2f f9 04          LdaKeyedProperty r1, [4]
+// r1[2]到累加器
+         0x3711a3be0a64 @   14 : c3                Star0 
+// 给r0
+ 1270 S&gt; 0x3711a3be0a65 @   15 : 96 23             JumpIfToBooleanFalse [35] (0x3711a3be0a88 @ 50)
+         0x3711a3be0a67 @   17 : 17 03             LdaImmutableCurrentContextSlot [3]
+// 猜测是加载aaa到累加器
+         0x3711a3be0a69 @   19 : c2                Star1 
+// 给r1
+ 1279 E&gt; 0x3711a3be0a6a @   20 : 61 f9 fa 06       CallUndefinedReceiver1 r1, r0, [6]
+// 调用函数 r1(r0) aaa(flag)
+         0x3711a3be0a6e @   24 : c2                Star1 
+// 将返回值给r1
+         0x3711a3be0a6f @   25 : 11                LdaTrue 
+ 1286 E&gt; 0x3711a3be0a70 @   26 : 6a f9 08          TestEqual r1, [8]
+// 判断返回值是否为true
+         0x3711a3be0a73 @   29 : 98 15             JumpIfFalse [21] (0x3711a3be0a88 @ 50)
+ 1305 S&gt; 0x3711a3be0a75 @   31 : 21 02 09          LdaGlobal [2], [9]
+// 为true就执行console.log(&quot;Right!&quot;)
+         0x3711a3be0a78 @   34 : c1                Star2 
+ 1313 E&gt; 0x3711a3be0a79 @   35 : 2d f8 03 0b       LdaNamedProperty r2, [3], [11]
+         0x3711a3be0a7d @   39 : c2                Star1 
+         0x3711a3be0a7e @   40 : 13 04             LdaConstant [4]
+         0x3711a3be0a80 @   42 : c0                Star3 
+ 1313 E&gt; 0x3711a3be0a81 @   43 : 5d f9 f8 f7 0d    CallProperty1 r1, r2, r3, [13]
+         0x3711a3be0a86 @   48 : 89 13             Jump [19] (0x3711a3be0a99 @ 67)
+ 1349 S&gt; 0x3711a3be0a88 @   50 : 21 02 09          LdaGlobal [2], [9]
+// 接下来代码就是console.log(&quot;Wrong!&quot;)
+         0x3711a3be0a8b @   53 : c1                Star2 
+ 1357 E&gt; 0x3711a3be0a8c @   54 : 2d f8 03 0b       LdaNamedProperty r2, [3], [11]
+         0x3711a3be0a90 @   58 : c2                Star1 
+         0x3711a3be0a91 @   59 : 13 05             LdaConstant [5]
+         0x3711a3be0a93 @   61 : c0                Star3 
+ 1357 E&gt; 0x3711a3be0a94 @   62 : 5d f9 f8 f7 0f    CallProperty1 r1, r2, r3, [15]
+         0x3711a3be0a99 @   67 : 0e                LdaUndefined 
+ 1378 S&gt; 0x3711a3be0a9a @   68 : a8                Return 
+Constant pool (size = 6)
+0x3711a3be09e1: [FixedArray] in OldSpace
+ - map: 0x2546cb1c12c1 &lt;Map&gt;
+ - length: 6
+           0: 0x39ea5930f9e9 &lt;String[7]: #process&gt;
+           1: 0x20e3b754b6d9 &lt;String[4]: #argv&gt;
+           2: 0x26784b2e1619 &lt;String[7]: #console&gt;
+           3: 0x0ef123a28e69 &lt;String[3]: #log&gt;
+           4: 0x3711a3be0961 &lt;String[6]: #Right!&gt;
+           5: 0x3711a3be0979 &lt;String[6]: #Wrong!&gt;
+</code></pre><p>接下来是aaa函数</p><pre><code class=language-javascript>  757 S&gt; 0x3711a3be0cde @    0 : 21 00 00          LdaGlobal [0], [0]
+         0x3711a3be0ce1 @    3 : c0                Star3 
+// 加载Buffer对象到r3
+  768 E&gt; 0x3711a3be0ce2 @    4 : 2d f7 01 02       LdaNamedProperty r3, [1], [2]
+         0x3711a3be0ce6 @    8 : c0                Star3 
+// Buffer.from =&gt; r3
+         0x3711a3be0ce7 @    9 : 0b f7             Ldar r3
+  757 E&gt; 0x3711a3be0ce9 @   11 : 68 f7 03 01 04    Construct r3, a0-a0, [4]
+// 将flag字符串转换为数组
+         0x3711a3be0cee @   16 : c3                Star0 
+  792 S&gt; 0x3711a3be0cef @   17 : 2d fa 02 06       LdaNamedProperty r0, [2], [6]
+// 获取flag长度
+         0x3711a3be0cf3 @   21 : c0                Star3 
+         0x3711a3be0cf4 @   22 : 0d 2b             LdaSmi [43]
+  799 E&gt; 0x3711a3be0cf6 @   24 : 6a f7 08          TestEqual r3, [8]
+// 判断长度是否达到43
+         0x3711a3be0cf9 @   27 : 97 04             JumpIfTrue [4] (0x3711a3be0cfd @ 31)
+  806 S&gt; 0x3711a3be0cfb @   29 : 12                LdaFalse 
+  819 S&gt; 0x3711a3be0cfc @   30 : a8                Return 
+  835 S&gt; 0x3711a3be0cfd @   31 : 21 00 00          LdaGlobal [0], [0]
+         0x3711a3be0d00 @   34 : c0                Star3 
+  846 E&gt; 0x3711a3be0d01 @   35 : 2d f7 03 09       LdaNamedProperty r3, [3], [9]
+         0x3711a3be0d05 @   39 : c0                Star3 
+         0x3711a3be0d06 @   40 : 0d 2b             LdaSmi [43]
+         0x3711a3be0d08 @   42 : bf                Star4 
+         0x3711a3be0d09 @   43 : 0b f7             Ldar r3
+  835 E&gt; 0x3711a3be0d0b @   45 : 68 f7 f6 01 0b    Construct r3, r4-r4, [11]
+// 用Buffer.alloc创建一个新数组
+         0x3711a3be0d10 @   50 : c2                Star1 
+  942 S&gt; 0x3711a3be0d11 @   51 : 21 00 00          LdaGlobal [0], [0]
+         0x3711a3be0d14 @   54 : bf                Star4 
+  949 E&gt; 0x3711a3be0d15 @   55 : 2d f6 01 02       LdaNamedProperty r4, [1], [2]
+         0x3711a3be0d19 @   59 : c0                Star3 
+         0x3711a3be0d1a @   60 : 13 04             LdaConstant [4]
+         0x3711a3be0d1c @   62 : be                Star5 
+         0x3711a3be0d1d @   63 : 13 05             LdaConstant [5]
+         0x3711a3be0d1f @   65 : bd                Star6 
+  949 E&gt; 0x3711a3be0d20 @   66 : 5e f7 f6 f5 f4 0d CallProperty2 r3, r4, r5, r6, [13]
+// 通过Buffer.from(常量池4, &quot;hex&quot;) 将十六进制字符串转换为buffer
+         0x3711a3be0d26 @   72 : c1                Star2 
+ 1056 S&gt; 0x3711a3be0d27 @   73 : 17 02             LdaImmutableCurrentContextSlot [2]
+// 这个应该是ccc函数
+         0x3711a3be0d29 @   75 : c0                Star3 
+         0x3711a3be0d2a @   76 : 19 fa f6          Mov r0, r4
+         0x3711a3be0d2d @   79 : 19 f9 f5          Mov r1, r5
+         0x3711a3be0d30 @   82 : 19 f8 f4          Mov r2, r6
+ 1063 E&gt; 0x3711a3be0d33 @   85 : 5f f7 f6 03 0f    CallUndefinedReceiver r3, r4-r6, [15]
+// 调用ccc函数，r3(r4, r5, r6) 即ccc(flag数组, 空白数组, 密文数组)
+ 1087 S&gt; 0x3711a3be0d38 @   90 : a8                Return 
+Constant pool (size = 6)
+0x3711a3be0c69: [FixedArray] in OldSpace
+ - map: 0x2546cb1c12c1 &lt;Map&gt;
+ - length: 6
+           0: 0x3adf78836561 &lt;String[6]: #Buffer&gt;
+           1: 0x2546cb1c4999 &lt;String[4]: #from&gt;
+           2: 0x2546cb1c4d41 &lt;String[6]: #length&gt;
+           3: 0x3adf78836c31 &lt;String[5]: #alloc&gt;
+           4: 0x3711a3be0bb1 &lt;String[86]: #3edd7925cd6e04ab44f25bef57bc53bd20b74b8c11f893090fdcdfddad0709100100fe6a9230333234fbae&gt;
+           5: 0x3adf78838741 &lt;String[3]: #hex&gt;
+</code></pre><p>最后是ccc函数</p><pre><code class=language-javascript>// ccc函数
+  173 S&gt; 0x3711a3be1216 @    0 : 00 0d aa 00       LdaSmi.Wide [170]
+         0x3711a3be121a @    4 : c3                Star0 
+// r0 = 170
+  188 S&gt; 0x3711a3be121b @    5 : 0c                LdaZero 
+  189 E&gt; 0x3711a3be121c @    6 : 23 00 00          StaGlobal [0], [0]
+  194 S&gt; 0x3711a3be121f @    9 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be1222 @   12 : c1                Star2 
+         0x3711a3be1223 @   13 : 0d 13             LdaSmi [19]
+  194 E&gt; 0x3711a3be1225 @   15 : 6c f8 04          TestLessThan r2, [4]
+// 循环19个字符
+         0x3711a3be1228 @   18 : 98 2a             JumpIfFalse [42] (0x3711a3be1252 @ 60)
+  274 S&gt; 0x3711a3be122a @   20 : 21 00 02          LdaGlobal [0], [2]
+  273 E&gt; 0x3711a3be122d @   23 : 2f 03 06          LdaKeyedProperty a0, [6]
+  265 E&gt; 0x3711a3be1230 @   26 : 38 fa 08          Add r0, [8]    
+// a0[i]+170
+  277 E&gt; 0x3711a3be1233 @   29 : 44 33 09          AddSmi [51], [9]    
+// a0[i]+170+51
+  285 E&gt; 0x3711a3be1236 @   32 : 00 4c ff 00 05 00 BitwiseAndSmi.Wide [255], [5]
+         0x3711a3be123c @   38 : c3                Star0    
+// r0 = (a0[i]+170+51) &amp; 0xff
+  305 S&gt; 0x3711a3be123d @   39 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be1240 @   42 : c0                Star3
+         0x3711a3be1241 @   43 : 0b fa             Ldar r0
+  308 E&gt; 0x3711a3be1243 @   45 : 34 04 f7 0a       StaKeyedProperty a1, r3, [10]    
+// a1[i] = (a0[i]+51) &amp; 255
+  200 S&gt; 0x3711a3be1247 @   49 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be124a @   52 : 50 0c             Inc [12]
+// i加上一个单元
+  200 E&gt; 0x3711a3be124c @   54 : 23 00 00          StaGlobal [0], [0]
+  183 E&gt; 0x3711a3be124f @   57 : 88 30 00          JumpLoop [48], [0] (0x3711a3be121f @ 9)
+  337 S&gt; 0x3711a3be1252 @   60 : 0d 55             LdaSmi [85]
+         0x3711a3be1254 @   62 : c2                Star1   
+// r1 = 85
+  352 S&gt; 0x3711a3be1255 @   63 : 0d 13             LdaSmi [19]
+  353 E&gt; 0x3711a3be1257 @   65 : 23 00 00          StaGlobal [0], [0]
+  359 S&gt; 0x3711a3be125a @   68 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be125d @   71 : c1                Star2
+         0x3711a3be125e @   72 : 0d 2b             LdaSmi [43]
+  359 E&gt; 0x3711a3be1260 @   74 : 6c f8 0d          TestLessThan r2, [13]
+// 从19循环到43
+         0x3711a3be1263 @   77 : 98 34             JumpIfFalse [52] (0x3711a3be1297 @ 129)
+  383 S&gt; 0x3711a3be1265 @   79 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be1268 @   82 : c0                Star3
+  403 E&gt; 0x3711a3be1269 @   83 : 21 00 02          LdaGlobal [0], [2]
+  402 E&gt; 0x3711a3be126c @   86 : 2f 03 10          LdaKeyedProperty a0, [16]
+  394 E&gt; 0x3711a3be126f @   89 : 38 f9 0f          Add r1, [15]    
+// a0[i]+r1
+  407 E&gt; 0x3711a3be1272 @   92 : 00 4c ff 00 0e 00 BitwiseAndSmi.Wide [255], [14]
+  386 E&gt; 0x3711a3be1278 @   98 : 34 04 f7 12       StaKeyedProperty a1, r3, [18]   
+//a1[i] = a0[i]
+  442 S&gt; 0x3711a3be127c @  102 : 21 00 02          LdaGlobal [0], [2]
+  441 E&gt; 0x3711a3be127f @  105 : 2f 04 16          LdaKeyedProperty a1, [22]
+  436 E&gt; 0x3711a3be1282 @  108 : 3f f9 15          BitwiseXor r1, [21]
+// a1[i] ^ r1
+  446 E&gt; 0x3711a3be1285 @  111 : 00 4c ff 00 14 00 BitwiseAndSmi.Wide [255], [20]
+         0x3711a3be128b @  117 : c2                Star1  
+// r1 = a1[i] ^ r1
+  365 S&gt; 0x3711a3be128c @  118 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be128f @  121 : 50 18             Inc [24]    
+// i增加一个单元
+  365 E&gt; 0x3711a3be1291 @  123 : 23 00 00          StaGlobal [0], [0]
+  347 E&gt; 0x3711a3be1294 @  126 : 88 3a 00          JumpLoop [58], [0] (0x3711a3be125a @ 68)
+  531 S&gt; 0x3711a3be1297 @  129 : 00 0d 9f 00       LdaSmi.Wide [159]
+  540 E&gt; 0x3711a3be129b @  133 : 6a f9 19          TestEqual r1, [25]
+         0x3711a3be129e @  136 : 98 32             JumpIfFalse [50] (0x3711a3be12d0 @ 186)
+  563 S&gt; 0x3711a3be12a0 @  138 : 0c                LdaZero 
+  564 E&gt; 0x3711a3be12a1 @  139 : 23 00 00          StaGlobal [0], [0]
+  569 S&gt; 0x3711a3be12a4 @  142 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be12a7 @  145 : c1                Star2
+         0x3711a3be12a8 @  146 : 0d 2b             LdaSmi [43]
+// 循环43，比对密文和加密后的flag
+  569 E&gt; 0x3711a3be12aa @  148 : 6c f8 1a          TestLessThan r2, [26]
+         0x3711a3be12ad @  151 : 98 21             JumpIfFalse [33] (0x3711a3be12ce @ 184)
+  604 S&gt; 0x3711a3be12af @  153 : 21 00 02          LdaGlobal [0], [2]
+  603 E&gt; 0x3711a3be12b2 @  156 : 2f 05 1b          LdaKeyedProperty a2, [27]    // a2[i]
+         0x3711a3be12b5 @  159 : c1                Star2 
+  614 E&gt; 0x3711a3be12b6 @  160 : 21 00 02          LdaGlobal [0], [2]
+  613 E&gt; 0x3711a3be12b9 @  163 : 2f 04 1d          LdaKeyedProperty a1, [29]    // a1[i]
+  607 E&gt; 0x3711a3be12bc @  166 : 6a f8 1f          TestEqual r2, [31]
+         0x3711a3be12bf @  169 : 97 04             JumpIfTrue [4] (0x3711a3be12c3 @ 173)
+  636 S&gt; 0x3711a3be12c1 @  171 : 12                LdaFalse 
+  649 S&gt; 0x3711a3be12c2 @  172 : a8                Return 
+  575 S&gt; 0x3711a3be12c3 @  173 : 21 00 02          LdaGlobal [0], [2]
+         0x3711a3be12c6 @  176 : 50 20             Inc [32]
+  575 E&gt; 0x3711a3be12c8 @  178 : 23 00 00          StaGlobal [0], [0]
+  558 E&gt; 0x3711a3be12cb @  181 : 88 27 00          JumpLoop [39], [0] (0x3711a3be12a4 @ 142)
+  682 S&gt; 0x3711a3be12ce @  184 : 11                LdaTrue 
+  694 S&gt; 0x3711a3be12cf @  185 : a8                Return 
+  705 S&gt; 0x3711a3be12d0 @  186 : 12                LdaFalse 
+  718 S&gt; 0x3711a3be12d1 @  187 : a8                Return 
+Constant pool (size = 1)
+0x3711a3be11c9: [FixedArray] in OldSpace
+ - map: 0x2546cb1c12c1 &lt;Map&gt;
+ - length: 1
+           0: 0x2546cb1c9159 &lt;String[1]: #i&gt;
+</code></pre><p>所以可以容易知道加密算法分为两部分，第一部分是0~18字节的算法</p><pre><code class=language-javascript>let x = 170
+for(let i = 0; i &lt; 19; i++) {
+    newbuf[i] = (flag[i] + x + 51) &amp; 0xff;
+    x = newbuf[i];
+}
+</code></pre><p>第二部分是剩下的字节</p><pre><code class=language-javascript>let y = 85;
+for(let i = 19; i &lt; 43; i++) {
+    newbuf[i] = (flag[i] + y) &amp; 0xff;
+    y = newbuf[i] ^ y;
+}
+</code></pre><p>所以很容易得到逆向脚本</p><pre><code class=language-python>string = &quot;3edd7925cd6e04ab44f25bef57bc53bd20b74b8c11f893090fdcdfddad0709100100fe6a9230333234fbae&quot;
+li = []
+for i in range(0, len(string), 2):
+    li.append(int(string[i]+string[i+1], 16))
+
+x = 170
+for i in range(0, 19):
+    print(chr((li[i]-x-51)&amp;0xff), end=&quot;&quot;)
+    x = li[i]
+    
+y = 85
+for i in range(19, len(li)):
+    print(chr((li[i]-y)&amp;0xff), end=&quot;&quot;)
+    y = li[i]^y
+</code></pre><p><img class="img-fluid lazyload blur-up" src=https://c3n1gbr0k3n.github.io/images/642c7060efcfe7f45f75b7986e8deb87.png alt=642c7060efcfe7f45f75b7986e8deb87></p><h3 id=0x02-参考文章>0x02 参考文章 <a href=#0x02-%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0 class=anchor aria-hidden=true>#</a></h3><p><a href=https://zhuanlan.zhihu.com/p/28590489>理解 V8 的字节码「译」 - 知乎 (zhihu.com)</a></p><div class="page-footer-meta d-flex flex-column flex-md-row justify-content-between"></div><div class="docs-navigation d-flex justify-content-between"><a class=ms-auto href=https://c3n1gbr0k3n.github.io/writeup/buuoj/jarvisoj_tell_me_somethings/><div class="card my-1"><div class="card-body py-2">Jarvisoj_tell_me_somethings &rarr;</div></div></a></div></main></div></div></div><footer class="footer text-muted"><div class=container-xxl><div class=row><div class="col-lg-8 order-last order-lg-first"><ul class=list-inline><li class=list-inline-item>Written by c3n1gbr0k3n</li></ul></div><div class="col-lg-8 order-first order-lg-last text-lg-end"><ul class=list-inline></ul></div></div></div></footer><script src=https://c3n1gbr0k3n.github.io/js/bootstrap.min.650aeec64c81d69d4c0850fc73c93da3f0330cec0a27772feed7f90f60baa5f47f1c45687d71914bdafd1c4e860d40f6dc08ede27a2f08431ff929c9a2d24621.js integrity="sha512-ZQruxkyB1p1MCFD8c8k9o/AzDOwKJ3cv7tf5D2C6pfR/HEVofXGRS9r9HE6GDUD23Ajt4novCEMf+SnJotJGIQ==" crossorigin=anonymous defer></script>
+<script src=https://c3n1gbr0k3n.github.io/js/highlight.min.a5eee34927239a22fbeae000257a46e9983ab5860c2401ddcdb32664d8e92accdb1b58a4ced97109bc642ef870a90fd4b4e916f4f98205a6008bd257ad49e9a4.js integrity="sha512-pe7jSScjmiL76uAAJXpG6Zg6tYYMJAHdzbMmZNjpKszbG1ikztlxCbxkLvhwqQ/UtOkW9PmCBaYAi9JXrUnppA==" crossorigin=anonymous defer></script>
+<script src=https://c3n1gbr0k3n.github.io/main.min.cb2e2ebbf2e4002f3117addc33582923b2b3ae5265c22944cd117ebec7abe61c170417c4506d7a0f8f0fc9053dfdf441421d53601ac467042ff3d06ec0ba07fa.js integrity="sha512-yy4uu/LkAC8xF63cM1gpI7KzrlJlwilEzRF+vser5hwXBBfEUG16D48PyQU9/fRBQh1TYBrEZwQv89BuwLoH+g==" crossorigin=anonymous defer></script>
+<script src=https://c3n1gbr0k3n.github.io/index.min.5575bab782564729398c400507a85be5230867008a1c3247256457d9d9af13ba5758ed38a849b0385561691cd755fb1d6397ab7001c9fba02d81eba1ef80cbbb.js integrity="sha512-VXW6t4JWRyk5jEAFB6hb5SMIZwCKHDJHJWRX2dmvE7pXWO04qEmwOFVhaRzXVfsdY5ercAHJ+6Atgeuh74DLuw==" crossorigin=anonymous defer></script></body></html>
