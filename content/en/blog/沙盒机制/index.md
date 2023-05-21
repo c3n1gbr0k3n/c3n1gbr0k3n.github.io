@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 // gcc prctl_test.c -o prctl_test
 ```
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/2364397/1683379694406-cd5f50f9-ab95-4a86-a1b1-39da3516c4d9.png#averageHue=%23263641&clientId=u2f0b0d31-9617-4&from=paste&height=34&id=u32840a7e&originHeight=34&originWidth=1000&originalType=binary&ratio=1&rotation=0&showTitle=false&size=10557&status=done&style=none&taskId=u6b9cf182-9b68-498f-a38d-5340867a163&title=&width=1000)
+![3d1433bc1ec644e4da8d29d0a21ccbff](images/3d1433bc1ec644e4da8d29d0a21ccbff.png)
 
 ### Seccomp库
 
@@ -175,7 +175,7 @@ seccomp_init是初始化结构体，它可以初始化过滤器为白名单模�
 seccomp_rule_add是添加规则，第二个参数是指这条规则匹配后要做的操作，SCMP_ACT_ERRNO表示在匹配后报一个特殊的错误，也可以直接填为SCMP_ACT_KILL，即直接kill，第三个参数是系统调用号，第四个参数是对目标系统调用的参数做出限制，这里由于是直接禁用该系统调用，所以填0即可
 seccomp_load是加载过滤器
 
-![image.png](https://cdn.nlark.com/yuque/0/2023/png/2364397/1683379938223-3558b605-8241-4477-8f32-6f974d807df1.png#averageHue=%23263642&clientId=u2f0b0d31-9617-4&from=paste&height=32&id=u0295e503&originHeight=32&originWidth=1000&originalType=binary&ratio=1&rotation=0&showTitle=false&size=10417&status=done&style=none&taskId=ue0ed085d-193a-45aa-af42-a7ec130dc7b&title=&width=1000)
+![e3f02893e2e39754c56d2c15a1aaf1aa](images/e3f02893e2e39754c56d2c15a1aaf1aa.png)
 
 ## 0x02 参考文章
 
