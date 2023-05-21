@@ -38,7 +38,7 @@ option的值有很多，具体的可以查看[Linux手册](https://man7.org/linu
 int prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 ```
 
-还有一个值是PR_SET_SECCOMP（22），如果arg2为1的话，则表示只开启read、write、exit和sigreturn这几个系统调用。如果arg2为2的话则表示为过滤模式，主要根据arg2来过滤东西，arg2是一个`struct sock_fprog`类型指针，该结构体原型为
+还有一个值是PR_SET_SECCOMP（22），如果arg2为1的话，则表示只开启read、write、exit和sigreturn这几个系统调用。如果arg2为2的话则表示为过滤模式，主要根据arg3来过滤东西，arg3是一个`struct sock_fprog`类型指针，该结构体原型为
 
 ```c
 #include<linux/filter.h>
