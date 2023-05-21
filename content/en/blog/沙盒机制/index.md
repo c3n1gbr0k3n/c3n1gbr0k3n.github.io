@@ -44,8 +44,8 @@ int prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 #include<linux/filter.h>
 
 struct sock_fprog {
-	unsigned short      len;
-	struct sock_filter *filter;
+    unsigned short      len;
+    struct sock_filter *filter;
 };
 ```
 
@@ -97,7 +97,7 @@ BPF_STMT针对于读取返回指令设置的，BPF_JUMP则是针对于跳转指�
 #include<linux/filter.h>
 
 struct sock_filter filter[] = {
-	BPF_STMT(BPF_LD | BPF_W | BPF_ABS, 0),
+    BPF_STMT(BPF_LD | BPF_W | BPF_ABS, 0),
     BPF_JUMP(BPF_JMP | BPF_JEQ, __NR_read, 1, 0),
     BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
     BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL),
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 它用起来比prctl更方便，但是需要安装部分库
 
 ```bash
-$ apt-get install libseccomp-dev libseccomp2 seccomp
+sudo apt-get install libseccomp-dev libseccomp2 seccomp
 ```
 
 可以写一个简单的例子来看一下使用方法
